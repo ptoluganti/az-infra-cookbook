@@ -1,0 +1,278 @@
+fullnameOverride: "argocd"
+
+# crds:
+#   install: true
+#   keep: true
+
+
+# ## Application controller
+# controller:
+#   name: application-controller
+#   metrics:
+#     enabled: true
+#     serviceMonitor:
+#       enabled: false
+
+# ## Dex
+# dex:
+#   enabled: true
+#   name: dex-server
+#   resources:
+#     limits:
+#       cpu: 50m
+#       memory: 64Mi
+#     requests:
+#       cpu: 10m
+#       memory: 32Mi
+#   metrics:
+#     enabled: true
+#     serviceMonitor:
+#       enabled: false
+
+# ## Redis
+# redis:
+#   name: redis
+#   enabled: false
+#   resources:
+#     limits:
+#       cpu: 200m
+#       memory: 128Mi
+#     requests:
+#       cpu: 100m
+#       memory: 64Mi
+#   metrics:
+#     enabled: true
+#     serviceMonitor:
+#       enabled: false
+
+# ## Redis HA
+# redis-ha:
+#   enabled: true
+#   exporter:
+#     enabled: false
+#   haproxy:
+#     enabled: true
+#     metrics:
+#       enabled: true
+#   metrics:
+#     enabled: true
+#     serviceMonitor:
+#       enabled: false
+
+# ## Server
+# server:
+#   name: server
+#   replicas: 1
+#   autoscaling:
+#     enabled: true
+#     minReplicas: 2
+#     maxReplicas: 20
+#     targetCPUUtilizationPercentage: 50
+#     targetMemoryUtilizationPercentage: 50
+#     behavior:
+#       scaleDown:
+#         stabilizationWindowSeconds: 300
+#         policies:
+#           - type: Pods
+#             value: 1
+#             periodSeconds: 180
+#       scaleUp:
+#         stabilizationWindowSeconds: 300
+#         policies:
+#           - type: Pods
+#             value: 2
+#             periodSeconds: 60
+
+#   # -- Additional command line arguments to pass to Argo CD server
+#   extraArgs: []
+
+#   # -- Environment variables to pass to Argo CD server
+#   env: []
+
+#   # -- envFrom to pass to Argo CD server
+#   # @default -- `[]` (See [values.yaml])
+#   envFrom: []
+#   # - configMapRef:
+#   #     name: config-map-name
+#   # - secretRef:
+#   #     name: secret-name
+
+#   # -- Specify postStart and preStop lifecycle hooks for your argo-cd-server container
+#   lifecycle: {}
+
+#   nodeSelector:
+#     kubernetes.azure.com/mode: user
+
+#   resources:
+#     limits:
+#       cpu: 100m
+#       memory: 128Mi
+#     requests:
+#       cpu: 50m
+#       memory: 64Mi
+
+#   ## Certificate configuration
+#   certificate:
+#     # -- Deploy a Certificate resource (requires cert-manager)
+#     enabled: false
+#     # -- Certificate primary domain (commonName)
+#     domain: argocd.example.com
+#     # -- The requested 'duration' (i.e. lifetime) of the Certificate. Value must be in units accepted by Go time.ParseDuration
+#     duration: ""
+#     # -- How long before the currently issued certificate's expiry cert-manager should renew the certificate. Value must be in units accepted by Go time.ParseDuration
+#     renewBefore: ""
+#     # Private key of the certificate
+#     privateKey:
+#       # -- Rotation policy of private key when certificate is re-issued. Either: `Never` or `Always`
+#       rotationPolicy: Never
+#       # -- The private key cryptography standards (PKCS) encoding for private key. Either: `PCKS1` or `PKCS8`
+#       encoding: PKCS1
+#       # -- Algorithm used to generate certificate private key. One of: `RSA`, `Ed25519` or `ECDSA`
+#       algorithm: RSA
+#       # -- Key bit size of the private key. If algorithm is set to `Ed25519`, size is ignored.
+#       size: 2048
+#     issuer:
+#       # -- Certificate issuer group. Set if using an external issuer. Eg. `cert-manager.io`
+#       group: ""
+#       # -- Certificate issuer kind. Either `Issuer` or `ClusterIssuer`
+#       kind: ""
+#       # -- Certificate isser name. Eg. `letsencrypt`
+#       name: ""
+#     # -- Certificate manager additional hosts
+#     additionalHosts: []
+#     # -- The name of the Secret that will be automatically created and managed by this Certificate resource
+#     secretName: argocd-server-tls
+
+#   ## Server service configuration
+#   service:
+#     # -- Server service annotations
+#     annotations: {}
+#     # -- Server service labels
+#     labels: {}
+#     # -- Server service type
+#     type: ClusterIP
+#     # -- Server service http port for NodePort service type (only if `server.service.type` is set to "NodePort")
+#     nodePortHttp: 30080
+#     # -- Server service https port for NodePort service type (only if `server.service.type` is set to "NodePort")
+#     nodePortHttps: 30443
+#     # -- Server service http port
+#     servicePortHttp: 80
+#     # -- Server service https port
+#     servicePortHttps: 443
+#     # -- Server service http port name, can be used to route traffic via istio
+#     servicePortHttpName: http
+#     # -- Server service https port name, can be used to route traffic via istio
+#     servicePortHttpsName: https
+#     # -- Use named target port for argocd
+#     ## Named target ports are not supported by GCE health checks, so when deploying argocd on GKE
+#     ## and exposing it via GCE ingress, the health checks fail and the load balancer returns a 502.
+#     namedTargetPort: true
+#     # -- LoadBalancer will get created with the IP specified in this field
+#     loadBalancerIP: ""
+#     # -- Source IP ranges to allow access to service from
+#     loadBalancerSourceRanges: []
+#     # -- Server service external IPs
+#     externalIPs: []
+#     # -- Denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints
+#     externalTrafficPolicy: ""
+#     # -- Used to maintain session affinity. Supports `ClientIP` and `None`
+#     sessionAffinity: ""
+
+#   ## Server metrics service configuration
+#   metrics:
+#     enabled: true
+
+# ## Repo Server
+# repoServer:
+#   name: repo-server
+#   autoscaling:
+#     enabled: true
+#     minReplicas: 2
+#     maxReplicas: 20
+#     behavior:
+#       scaleDown:
+#         stabilizationWindowSeconds: 300
+#         policies:
+#           - type: Pods
+#             value: 1
+#             periodSeconds: 180
+#       scaleUp:
+#         stabilizationWindowSeconds: 300
+#         policies:
+#           - type: Pods
+#             value: 2
+#             periodSeconds: 60
+#   nodeSelector:
+#     kubernetes.azure.com/mode: user
+#   resources:
+#     limits:
+#       cpu: 50m
+#       memory: 128Mi
+#     requests:
+#       cpu: 10m
+#       memory: 64Mi
+#   volumes:
+#     - name: plugin-scripts
+#       configMap:
+#         name: plugin-scripts
+#         defaultMode: 0755
+#     - name: argocd-aws-config
+#       secret:
+#         secretName: argocd-aws-configdata
+#         optional: false # default setting; "argocd-aws-configdata" must exist
+#   # volumeMounts:
+#   #   - mountPath: /usr/local/bin/helmsetup.sh
+#   #     name: plugin-scripts
+#   #     subPath: helmsetup.sh
+#   #     readOnly: true
+#   #   - mountPath: /usr/local/bin/helmtemplate.sh
+#   #     name: plugin-scripts
+#   #     subPath: helmtemplate.sh
+#   #     readOnly: true
+#   #   - mountPath: /home/argocd/.aws/config
+#   #     name: argocd-aws-config
+#   #     subPath: config
+#   #     readOnly: true
+#   #   - mountPath: /home/argocd/.aws/credentials
+#   #     name: argocd-aws-config
+#   #     subPath: credentials
+#   #     readOnly: true
+#   metrics:
+#     enabled: true
+#     serviceMonitor:
+#       enabled: false
+
+# ## ApplicationSet controller
+# applicationSet:
+#   enabled: true
+#   name: applicationset-controller
+#   replicaCount: 2
+#   nodeSelector:
+#     kubernetes.azure.com/mode: user
+#   resources:
+#     limits:
+#       cpu: 100m
+#       memory: 128Mi
+#     requests:
+#       cpu: 100m
+#       memory: 128Mi
+#   metrics:
+#     enabled: true
+
+# ## Notifications controller
+# notifications:
+#   enabled: true
+#   name: notifications-controller
+#   nodeSelector:
+#     kubernetes.azure.com/mode: user
+#   resources:
+#     limits:
+#       cpu: 100m
+#       memory: 128Mi
+#     requests:
+#       cpu: 100m
+#       memory: 128Mi
+#   metrics:
+#     enabled: true
+#     serviceMonitor:
+#       enabled: false

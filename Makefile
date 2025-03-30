@@ -14,6 +14,14 @@ CURRENT_DIR=$(shell pwd)
 KIND_CLUSTER_NAME := workshop.local
 K8S_LATEST := 1.32.3
 
+ARGOCD_HELM_RELEASE_NAME := gitops
+ARGOCD_CHART_NAME := argo-cd
+ARGOCD_CHART_REPO_URL := "https://argoproj.github.io/argo-helm"
+ARGOCD_CHART_REPO := argo
+ARGOCD_HELM_VALUES := "./gitops/argocd-values.yaml"
+ARGOCD_CHART := "${ARGOCD_CHART_REPO}/${ARGOCD_CHART_NAME}"
+ARGOCD_CHART_VERSION := "7.8.15"
+
 .PHONY: help
 
 # ====================================================================================
@@ -84,4 +92,26 @@ install_ingress_controller:
 delete_kind_cluster: ## Delete kind cluster
 	@$(INFO) "--- delete cluster --name ${KIND_CLUSTER_NAME} "
 	@kind delete cluster --name ${KIND_CLUSTER_NAME}
+	@$(OK)  "--- Done ---"
+
+# ====================================================================================
+# ArgoCD  
+add_argocd_repo: ## Helm Add ArgoCD Repository
+	@$(INFO) "--- helm repo add ${ARGOCD_CHART_REPO} ${ARGOCD_CHART_REPO_URL}"
+	@helm repo add ${ARGOCD_CHART_REPO} ${ARGOCD_CHART_REPO_URL}
+	@$(OK)  "--- Done ---"
+
+install_argocd: add_argocd_repo ## Helm Upgrade ArgoCD chart
+	@$(INFO) "------ Install Argocd --------"
+	@$(INFO) "Current context"
+	@kubectl config current-context
+	@kubectl apply -f ./gitops/ns.yaml
+
+	@$(INFO) "--- helm upgrade --install ${ARGOCD_HELM_RELEASE_NAME} --namespace ${ARGOCD_HELM_RELEASE_NAME} -f ${ARGOCD_HELM_VALUES} ${ARGOCD_CHART} --version ${ARGOCD_CHART_VERSION}---"
+	@helm upgrade --install ${ARGOCD_HELM_RELEASE_NAME} --namespace ${ARGOCD_HELM_RELEASE_NAME} -f ${ARGOCD_HELM_VALUES} ${ARGOCD_CHART} --version ${ARGOCD_CHART_VERSION}
+
+	@kubectl wait --namespace ${ARGOCD_HELM_RELEASE_NAME} \
+		--for=condition=ready pod \
+		--selector=app.kubernetes.io/instance=gitops \
+		--timeout=90s
 	@$(OK)  "--- Done ---"
