@@ -114,4 +114,6 @@ install_argocd: add_argocd_repo ## Helm Upgrade ArgoCD chart
 		--for=condition=ready pod \
 		--selector=app.kubernetes.io/instance=gitops \
 		--timeout=90s
+
+	@kubectl apply -f ./gitops/argocd-ingress.yaml
 	@$(OK)  "--- Done ---"
