@@ -75,11 +75,14 @@ create_docker_registry:
 create_kind_cluster: create_docker_registry
 	@$(INFO) "--- Create cluster --name ${KIND_CLUSTER_NAME} "
 	@kind create cluster --image=kindest/node:v${K8S_LATEST} --name ${KIND_CLUSTER_NAME} --config ./kind_config.yaml || true
+	@kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
 	@kubectl get nodes
 	@$(OK)  "--- Done ---"
 
 create_kind_cluster_with_registry:  ## Create kind cluster with registry
-	$(MAKE) create_kind_cluster && $(MAKE) connect_registry_to_kind && $(MAKE) install_ingress_controller 
+	$(MAKE) create_kind_cluster && $(MAKE) connect_registry_to_kind && $(MAKE) install_ingress_controller
+
+#  && $(MAKE) install_metallb_native
 	
 install_ingress_controller:
 	kubectl apply -f https://kind.sigs.k8s.io/examples/ingress/deploy-ingress-nginx.yaml && \
@@ -88,6 +91,16 @@ install_ingress_controller:
 		--for=condition=ready pod \
 		--selector=app.kubernetes.io/component=controller \
 		--timeout=90s
+
+# https://kind.sigs.k8s.io/docs/user/loadbalancer/
+install_metallb_native:
+	@kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.9/config/manifests/metallb-native.yaml && \
+	sleep 5 && \
+	kubectl wait --namespace metallb-system \
+		--for=condition=ready pod \
+		--selector=app=metallb \
+		--timeout=90s
+	@kubectl apply -f ./metallb-config.yaml
 
 delete_kind_cluster: ## Delete kind cluster
 	@$(INFO) "--- delete cluster --name ${KIND_CLUSTER_NAME} "
@@ -105,15 +118,15 @@ install_argocd: add_argocd_repo ## Helm Upgrade ArgoCD chart
 	@$(INFO) "------ Install Argocd --------"
 	@$(INFO) "Current context"
 	@kubectl config current-context
-	@kubectl apply -f ./gitops/ns.yaml
+	@kubectl apply -f ./${ARGOCD_HELM_RELEASE_NAME}/ns.yaml
 
 	@$(INFO) "--- helm upgrade --install ${ARGOCD_HELM_RELEASE_NAME} --namespace ${ARGOCD_HELM_RELEASE_NAME} -f ${ARGOCD_HELM_VALUES} ${ARGOCD_CHART} --version ${ARGOCD_CHART_VERSION}---"
 	@helm upgrade --install ${ARGOCD_HELM_RELEASE_NAME} --namespace ${ARGOCD_HELM_RELEASE_NAME} -f ${ARGOCD_HELM_VALUES} ${ARGOCD_CHART} --version ${ARGOCD_CHART_VERSION}
 
-	@kubectl wait --namespace ${ARGOCD_HELM_RELEASE_NAME} \
-		--for=condition=ready pod \
-		--selector=app.kubernetes.io/instance=gitops \
-		--timeout=90s
+	# @kubectl wait --namespace ${ARGOCD_HELM_RELEASE_NAME} \
+	# 	--for=condition=ready pod \
+	# 	--selector=app.kubernetes.io/instance=${ARGOCD_HELM_RELEASE_NAME} \
+	# 	--timeout=90s
 
-	@kubectl apply -f ./gitops/argocd-ingress.yaml
+	@kubectl apply -f ./${ARGOCD_HELM_RELEASE_NAME}/argocd-ui-ingress.yaml
 	@$(OK)  "--- Done ---"
