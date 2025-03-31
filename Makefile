@@ -22,6 +22,14 @@ ARGOCD_HELM_VALUES := "./gitops/argocd-values.yaml"
 ARGOCD_CHART := "${ARGOCD_CHART_REPO}/${ARGOCD_CHART_NAME}"
 ARGOCD_CHART_VERSION := "7.8.15"
 
+AWX_HELM_RELEASE_NAME := awx
+AWX_CHART_NAME := awx-operator
+AWX_CHART_REPO_URL := "https://ansible-community.github.io/awx-operator-helm/"
+AWX_CHART_REPO := awx-operator
+AWX_HELM_VALUES := "./awx/awx-operator-values.yaml"
+AWX_CHART := "${AWX_CHART_REPO}/${AWX_CHART_NAME}"
+AWX_CHART_VERSION := "2.19.1"
+
 .PHONY: help
 
 # ====================================================================================
@@ -106,10 +114,28 @@ delete_kind_cluster: ## Delete kind cluster
 	@$(OK)  "--- Done ---"
 
 # ====================================================================================
+# AWX Operator
+add_awx_repo: ## Helm Add AWX Repository
+	@$(INFO) "--- helm repo add ${AWX_CHART_REPO} ${AWX_CHART_REPO_URL}"
+	@helm repo add ${AWX_CHART_REPO} ${AWX_CHART_REPO_URL}
+	@helm repo update
+	@$(OK)  "--- Done ---"
+
+install_awx_operator: add_awx_repo ## Helm Upgrade AWX chart
+	@$(INFO) "------ Install AWX Operator --------"
+	@$(INFO) "Current context"
+	@kubectl config current-context
+	@kubectl apply -f ./${AWX_HELM_RELEASE_NAME}/ns.yaml
+	
+	@$(INFO) "--- helm upgrade --install ${AWX_HELM_RELEASE_NAME} --namespace ${AWX_HELM_RELEASE_NAME} -f ${AWX_HELM_VALUES} ${AWX_CHART} --version ${AWX_CHART_VERSION}---"
+	@helm upgrade --install ${AWX_HELM_RELEASE_NAME} --namespace ${AWX_HELM_RELEASE_NAME} -f ${AWX_HELM_VALUES} ${AWX_CHART} --version ${AWX_CHART_VERSION}
+
+# ====================================================================================
 # ArgoCD  
 add_argocd_repo: ## Helm Add ArgoCD Repository
 	@$(INFO) "--- helm repo add ${ARGOCD_CHART_REPO} ${ARGOCD_CHART_REPO_URL}"
 	@helm repo add ${ARGOCD_CHART_REPO} ${ARGOCD_CHART_REPO_URL}
+	@helm repo update
 	@$(OK)  "--- Done ---"
 
 install_argocd: add_argocd_repo ## Helm Upgrade ArgoCD chart
