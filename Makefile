@@ -129,6 +129,14 @@ install_awx_operator: add_awx_repo ## Helm Upgrade AWX chart
 	
 	@$(INFO) "--- helm upgrade --install ${AWX_HELM_RELEASE_NAME} --namespace ${AWX_HELM_RELEASE_NAME} -f ${AWX_HELM_VALUES} ${AWX_CHART} --version ${AWX_CHART_VERSION}---"
 	@helm upgrade --install ${AWX_HELM_RELEASE_NAME} --namespace ${AWX_HELM_RELEASE_NAME} -f ${AWX_HELM_VALUES} ${AWX_CHART} --version ${AWX_CHART_VERSION}
+	@$(OK)  "--- Done ---"
+
+create_awx_instace:
+	@$(INFO) "------ Create AWX Instance --------"
+	@$(INFO) "Current context"
+	@kubectl config current-context
+	@kubectl apply -f ./${AWX_HELM_RELEASE_NAME}/awx-instance.yaml
+	@$(OK)  "--- Done ---"
 
 # ====================================================================================
 # ArgoCD  

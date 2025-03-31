@@ -1,0 +1,13 @@
+apiVersion: awx.ansible.com/v1beta1
+kind: AWX
+metadata:
+  name: awx
+  namespace: awx
+spec:
+  service_type: NodePort
+  ingress_type: none
+  hostname: awx.local
+  projects_persistence: false
+
+  # service_type: nodeport
+  # nodeport_port: 32000
