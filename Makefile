@@ -80,12 +80,10 @@ create_kind_cluster: create_docker_registry
 	@$(OK)  "--- Done ---"
 
 create_kind_cluster_with_registry:  ## Create kind cluster with registry
-	$(MAKE) create_kind_cluster && $(MAKE) connect_registry_to_kind && $(MAKE) install_ingress_controller
-
-#  && $(MAKE) install_metallb_native
+	$(MAKE) create_kind_cluster && $(MAKE) connect_registry_to_kind && $(MAKE) install_ingress_controller && $(MAKE) install_metallb_native
 	
 install_ingress_controller:
-	kubectl apply -f https://kind.sigs.k8s.io/examples/ingress/deploy-ingress-nginx.yaml && \
+	kubectl apply -f ./deploy-ingress-nginx.yaml && \
 	sleep 5 && \
 	kubectl wait --namespace ingress-nginx \
 		--for=condition=ready pod \
@@ -94,7 +92,7 @@ install_ingress_controller:
 
 # https://kind.sigs.k8s.io/docs/user/loadbalancer/
 install_metallb_native:
-	@kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.9/config/manifests/metallb-native.yaml && \
+	@kubectl apply -f ./metallb-native.yaml && \
 	sleep 5 && \
 	kubectl wait --namespace metallb-system \
 		--for=condition=ready pod \
